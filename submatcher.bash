@@ -36,27 +36,31 @@ newfname() {
 
 language=${SUBLANG:-en}
 
-prefix="$1"
+if [[ "$0" == "$BASH_SOURCE" ]]; then
 
 shopt -s nullglob
-declare -a srt_files
-srt_files=( *.srt )
+declare -a srt_files      ; srt_files=( *.srt )
+declare -a vid_files      ; vid_files=( *.mp4 *.mkv )
 
-for srtfile in *.srt; do
-  offset="0"
+for srtfile in "${srt_files[@]}"; do
+  offset=0; season=; episode=;
+
+  echo "Checking: ${srtfile}"
   while [[ ${srtfile:$offset:5} =~ .{5} ]]; do
-    [[ ${srtfile:$offset:5} =~ ([0-9]{2}).([0-9]{2}) ]] && {
-      season=${BASH_REMATCH[1]}
-      episode=${BASH_REMATCH[2]}
-      break
-    }
+    get_se "${srtfile:$offset:5}" && break
     offset=$((offset + 1))
   done
   [[ $season && $episode ]] && {
-    echo season $season episode $episode
-  }
+    echo "... Resolved to Season ${season}, Episode ${episode}"
 
-  for vidfile in *.${prefix}; do
-    ::
-  done
+    for vidfile in "${vid_files[@]}"; do
+      match_media $season $episode "${vidfile}" && \
+        echo "... Match: ${vidfile}" && \
+        break
+    done
+  } || {
+    echo "... No match."
+  }
 done
+
+fi
