@@ -34,6 +34,8 @@ newfname() {
   echo "${newfilename}"
 }
 
+language=${SUBLANG:-en}
+
 prefix="$1"
 
 shopt -s nullglob
