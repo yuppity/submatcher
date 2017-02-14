@@ -14,6 +14,16 @@ get_se() {
   }
 }
 
+match_media() {
+  # Attempt to match subtitle file to a media file
+
+  local season=$1
+  local episode=$2
+  local mediafile="${3}"
+
+  [[ ${mediafile} =~ ${season}.${episode} ]] && return 0 || return 1
+}
+
 newfname() {
   # Generate file name for subtitle file
 
