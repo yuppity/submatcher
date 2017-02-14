@@ -41,6 +41,7 @@ if [[ "$0" == "$BASH_SOURCE" ]]; then
 shopt -s nullglob
 declare -a srt_files      ; srt_files=( *.srt )
 declare -a vid_files      ; vid_files=( *.mp4 *.mkv )
+declare -a matched_subs
 
 for srtfile in "${srt_files[@]}"; do
   offset=0; season=; episode=;
@@ -56,6 +57,7 @@ for srtfile in "${srt_files[@]}"; do
     for vidfile in "${vid_files[@]}"; do
       match_media $season $episode "${vidfile}" && \
         echo "... Match: ${vidfile}" && \
+        matched_subs+=( "${vidfile}" ) && \
         break
     done
   } || {
