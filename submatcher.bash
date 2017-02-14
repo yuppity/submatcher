@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eo pipefail
 [[ $DEBUG ]] && set -x
@@ -6,7 +6,7 @@ set -eo pipefail
 get_se() {
   # Extract season and episode numbers
 
-  [[ ${1} =~ ([0-9]{2}).([0-9]{2}) ]] && {
+  [[ ${1} =~ ${2} ]] && {
     season=${BASH_REMATCH[1]}
     episode=${BASH_REMATCH[2]}
   } || {
@@ -36,6 +36,12 @@ newfname() {
 
 language=${SUBLANG:-en}
 
+declare -a patterns
+# Define patterns in pairs of 'length' and 'pattern'. Where
+# 'length' is the number of chars to test at once and 'pattern'
+# the actual pattern to test those 'length' chars against.
+patterns+=( "5" "([0-9]{2}).([0-9]{2})" )
+
 if [[ "$0" == "$BASH_SOURCE" ]]; then
 
 shopt -s nullglob
@@ -44,26 +50,33 @@ declare -a vid_files      ; vid_files=( *.mp4 *.mkv )
 declare -a matched_subs
 
 for srtfile in "${srt_files[@]}"; do
-  offset=0; season=; episode=;
+  poffset=0; offset=0; season=; episode=;
+  matched=${#matched_subs[@]}
 
   echo "Checking: ${srtfile}"
-  while [[ ${srtfile:$offset:5} =~ .{5} ]]; do
-    get_se "${srtfile:$offset:5}" && break
-    offset=$((offset + 1))
-  done
-  [[ $season && $episode ]] && {
-    echo "... Resolved to Season ${season}, Episode ${episode}"
+  while [[ $poffset -lt ${#patterns[@]} ]]; do
 
-    for vidfile in "${vid_files[@]}"; do
-      match_media $season $episode "${vidfile}" && \
-        echo "... Match: ${vidfile}" && \
-        matched_subs+=( "${srtfile}" ) && \
-        matched_subs+=( "$(newfname "${srtfile}" "${vidfile}")" ) && \
-        break
+    while [[ ${srtfile:$offset:5} =~ .{${patterns[$poffset]}} ]]; do
+      get_se "${srtfile:$offset:5}" "${patterns[$((poffset + 1))]}" && break
+      offset=$((offset + 1))
     done
-  } || {
-    echo "... No match."
-  }
+
+    [[ $season && $episode ]] && {
+      echo "... Resolved to Season ${season}, Episode ${episode}"
+
+      for vidfile in "${vid_files[@]}"; do
+        match_media $season $episode "${vidfile}" && \
+          echo "... Match: ${vidfile}" && \
+          matched_subs+=( "${srtfile}" ) && \
+          matched_subs+=( "$(newfname "${srtfile}" "${vidfile}")" ) && \
+          break 2
+      done
+    }
+
+    poffset=$((poffset + 2))
+  done
+
+  [[ ${#matched_subs[@]} -eq $matched ]] && echo "... No match"
 done
 
 offset=0
