@@ -56,8 +56,8 @@ for srtfile in "${srt_files[@]}"; do
   echo "Checking: ${srtfile}"
   while [[ $poffset -lt ${#patterns[@]} ]]; do
 
-    while [[ ${srtfile:$offset:5} =~ .{${patterns[$poffset]}} ]]; do
-      get_se "${srtfile:$offset:5}" "${patterns[$((poffset + 1))]}" && break
+    while [[ ${srtfile:$offset:${patterns[$poffset]}} =~ .{${patterns[$poffset]}} ]]; do
+      get_se "${srtfile:$offset:${patterns[$poffset]}}" "${patterns[$((poffset + 1))]}" && break
       offset=$((offset + 1))
     done
 
