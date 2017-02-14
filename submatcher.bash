@@ -45,19 +45,39 @@ patterns+=( "5" "([0-9]{2}).([0-9]{2})" )
 if [[ "$0" == "$BASH_SOURCE" ]]; then
 
 shopt -s nullglob
+declare -a media_exts     ; media_exts=( "mp4" "mkv" "avi" )
 declare -a srt_files      ; srt_files=( *.srt )
-declare -a vid_files      ; vid_files=( *.mp4 *.mkv )
-declare -a matched_subs
+declare -a vid_files      ; for ext in "${media_exts[@]}"; do vid_files+=( *.${ext} ); done
+declare -a matched_subs   # Keep track of matched subs and their new filenames
+declare -a existing_subs  # For subtitles that already match a media file
+declare -a media_to_skip  # Media files that already have a matching sub file
+
+# Find media files that already have properly named subtitles and
+# store their names
+for vidfile in "${vid_files[@]}"; do
+  potential_subfile="${vidfile%.*}.${language}.srt"
+  [[ -e "${potential_subfile}" ]] && \
+    existing_subs+=( "${potential_subfile}" ) && \
+    media_to_skip+=( "${vidfile}" )
+done
 
 for srtfile in "${srt_files[@]}"; do
   poffset=0; offset=0; season=; episode=;
   matched=${#matched_subs[@]}
 
+  # Skip subtitle if it's one of the existing ones
+  for existing_sub in "${existing_subs[@]}"; do
+    [[ "${existing_sub}" == "${srtfile}" ]] && continue 2
+  done
+
   echo "Checking: ${srtfile}"
   while [[ $poffset -lt ${#patterns[@]} ]]; do
 
-    while [[ ${srtfile:$offset:${patterns[$poffset]}} =~ .{${patterns[$poffset]}} ]]; do
-      get_se "${srtfile:$offset:${patterns[$poffset]}}" "${patterns[$((poffset + 1))]}" && break
+    # Try to extract season and episode numbers
+    # Note: get_se doesn't echo back but saves to $season and $episode
+    patlength=${patterns[$poffset]}
+    while [[ ${srtfile:$offset:$patlength} =~ .{$patlength} ]]; do
+      get_se "${srtfile:$offset:$patlength}" "${patterns[$((poffset + 1))]}" && break
       offset=$((offset + 1))
     done
 
@@ -65,6 +85,13 @@ for srtfile in "${srt_files[@]}"; do
       echo "... Resolved to Season ${season}, Episode ${episode}"
 
       for vidfile in "${vid_files[@]}"; do
+
+        # Skip media file if it already had a properly
+        # named subtitle file
+        for skips in "${media_to_skip[@]}"; do
+          [[ "${skip}" == "${vidfile}" ]] && break 2
+        done
+
         match_media $season $episode "${vidfile}" && \
           echo "... Match: ${vidfile}" && \
           matched_subs+=( "${srtfile}" ) && \
@@ -79,10 +106,16 @@ for srtfile in "${srt_files[@]}"; do
   [[ ${#matched_subs[@]} -eq $matched ]] && echo "... No match"
 done
 
-offset=0
+# The rename part
+offset=0; renames=0; skips=0;
 while [[ $offset -lt ${#matched_subs[@]} ]]; do
-  mv "${matched_subs[$offset]}" "${matched_subs[$((offset + 1))]}"
+  newname="${matched_subs[$((offset + 1))]}"
+  [[ -e "${newname}" ]] && skips=$((skips + 1)) || {
+    mv "${matched_subs[$offset]}" "${newname}"
+    renames=$((renames + 1))
+  }
   offset=$((offset + 2))
 done
+printf "Renames: %d  Skips: %d\n" $renames $skips
 
 fi

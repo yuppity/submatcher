@@ -1,8 +1,20 @@
+TESTS = $(wildcard tests/*_test.sh)
+TDIR = test_dir
+
 clean:
-	rm -rf test_dir
+	rm -rf $(TDIR)
 
 manualtest: clean
 	@bash tests/manual.bash
-	ls test_dir > test_dir/list-old
-	@cd test_dir; bash ../submatcher.bash
-	ls test_dir > test_dir/list-new
+	@cd $(TDIR)/processed; bash ../../submatcher.bash
+
+showtree:
+	find $(TDIR) -type f
+
+tests:
+	bash $(TESTS)
+
+tt:
+	bash $(TESTS)
+
+.PHONY: tests
