@@ -3,6 +3,27 @@
 set -eo pipefail
 [[ $DEBUG ]] && set -x
 
+get_se() {
+  # Extract season and episode numbers
+
+  [[ ${1} =~ ([0-9]{2}).([0-9]{2}) ]] && {
+    season=${BASH_REMATCH[1]}
+    episode=${BASH_REMATCH[2]}
+  } || {
+    return 1
+  }
+}
+
+newfname() {
+  # Generate file name for subtitle file
+
+  local subfile="${1}"
+  local medianame="${2%.*}"
+  local subext="${subfile##*.}"
+  local newfilename="${medianame}.${language}.${subext}"
+  echo "${newfilename}"
+}
+
 prefix="$1"
 
 shopt -s nullglob
@@ -27,9 +48,3 @@ for srtfile in *.srt; do
     ::
   done
 done
-
-#Community - 03x01 - Biology 101.720p.WEB-DL.HoodBag.English.C.orig.Addic7ed.com.srt
-#Community S03E01 1080p WEB-DL AAC2.0 AVC-TrollHD.mp4
-#Community S03E02 1080p WEB-DL AAC2.0 AVC-TrollHD.mp4
-##perl -pe 's/.*?([0-9]{2}).?([0-9]{2}).*/\1\2/p;'
-
