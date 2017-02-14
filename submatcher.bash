@@ -57,7 +57,8 @@ for srtfile in "${srt_files[@]}"; do
     for vidfile in "${vid_files[@]}"; do
       match_media $season $episode "${vidfile}" && \
         echo "... Match: ${vidfile}" && \
-        matched_subs+=( "${vidfile}" ) && \
+        matched_subs+=( "${srtfile}" ) && \
+        matched_subs+=( "$(newfname "${srtfile}" "${vidfile}")" ) && \
         break
     done
   } || {
