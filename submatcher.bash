@@ -66,4 +66,10 @@ for srtfile in "${srt_files[@]}"; do
   }
 done
 
+offset=0
+while [[ $offset -lt ${#matched_subs[@]} ]]; do
+  mv "${matched_subs[$offset]}" "${matched_subs[$((offset + 1))]}"
+  offset=$((offset + 2))
+done
+
 fi
