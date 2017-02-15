@@ -21,7 +21,7 @@ match_media() {
   local episode=$2
   local mediafile="${3}"
 
-  [[ ${mediafile} =~ ${season}.${episode} ]] && return 0 || return 1
+  [[ ${mediafile} =~ ${season}[eEx]${episode} ]] && echo "$mediafile" && return 0 || return 1
 }
 
 newfname() {
