@@ -1,1 +1,1 @@
-Nada
+Match sensibly named subtitles to TV episodes. Works on the current directory and assumes the files are all episodes and subtitles of the same TV show.
