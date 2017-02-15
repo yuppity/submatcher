@@ -18,6 +18,11 @@ attempts+=(
   "Community S03E10 1080p WEB-DL AAC2.0 AVC-TrollHD.mkv"
   "03" "10" 0
 )
+attempts+=(
+  "Some.Random.TV.Show.S03E06.Episode.Title.720p.WEB-DL.srt"
+  "Another.Random.Show.03x06.1080p.mkv"
+  "03" "06" 0
+)
 
 fails=0; testnr=0; passes=0; skip=0; count=0
 while [[ $skip -lt ${#attempts[@]} ]]; do
@@ -63,6 +68,7 @@ while [[ $skip -lt ${#attempts[@]} ]]; do
   } || {
     echo "... Result: failed"; fails=$((fails + 1))
   }
+  echo ""
   } # End of mathching function tests
  
 done
