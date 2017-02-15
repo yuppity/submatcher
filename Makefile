@@ -7,6 +7,7 @@ clean:
 manualtest: clean
 	@bash tests/manual.bash
 	@cd $(TDIR)/processed; bash ../../submatcher.bash
+	@bash tests/treecompare.bash
 
 showtree:
 	find $(TDIR) -type f
